@@ -1,19 +1,28 @@
 "use client";
 
+import axios from "axios";
 import * as z from "zod";
-import { MessageSquare } from "lucide-react";
-import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 
-import Heading from "@/components/heading";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 import { formSchema } from "./constants";
+import OpenAI from "openai";
+import { MessageSquare } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Heading from "@/components/heading";
+// import { CreateChatCompletionRequestMessage } from "openai/resources/chat";
 
 const ConversationPage = () => {
+  const router = useRouter();
+  const [messages, setMessages] = useState<
+    OpenAI.Chat.CreateChatCompletionRequestMessage[]
+  >([]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -23,8 +32,29 @@ const ConversationPage = () => {
 
   const isLoading = form.formState.isSubmitting;
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const userMessage: OpenAI.Chat.CreateChatCompletionRequestMessage = {
+        role: "user",
+        content: values.prompt,
+      };
+      const newMessages = [...messages, userMessage];
+
+      const response = await axios.post("/api/conversation", {
+        messages: newMessages,
+      });
+
+      console.log("response", response);
+
+      setMessages((current) => [...current, userMessage, response.data]);
+
+      form.reset();
+    } catch (error: any) {
+      //TODO: open pro modal
+      console.log(error);
+    } finally {
+      router.refresh();
+    }
   };
 
   return (
@@ -63,7 +93,6 @@ const ConversationPage = () => {
             <Button
               className="col-span-12 lg:col-span-2 w-full"
               disabled={isLoading}
-              type="submit"
             >
               Generate
             </Button>

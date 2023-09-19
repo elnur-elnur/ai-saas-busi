@@ -4,7 +4,6 @@ import { Menu } from "lucide-react";
 
 import React, { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
-import { Button } from "./ui/button";
 import Sidebar from "./sidebar";
 
 const MobileSidebar = () => {
@@ -21,9 +20,9 @@ const MobileSidebar = () => {
   return (
     <Sheet>
       <SheetTrigger>
-        <Button variant="ghost" size="icon" className="md:hidden">
+        <div className="md:hidden">
           <Menu />
-        </Button>
+        </div>
       </SheetTrigger>
       <SheetContent side="left" className="p-0">
         <Sidebar />
